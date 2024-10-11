@@ -56,10 +56,13 @@ const FileUpload = () => {
   };
 
   return (
-    <div className="container">
+    <div className="file-upload-container">
       <h2>Upload and Process Invoice</h2>
-      <input type="file" onChange={handleFileChange} />
-      <button onClick={handleProcess} disabled={!file}>Process File</button>
+
+      <div className="file-upload-section">
+        <input type="file" onChange={handleFileChange} />
+        <button onClick={handleProcess} disabled={!file}>Process File</button>
+      </div>
 
       {extractedText && (
         <div className="extracted-text">
@@ -69,7 +72,7 @@ const FileUpload = () => {
       )}
 
       {excelPath && (
-        <button onClick={handleDownload}>Download Excel</button>
+        <button className="download-btn" onClick={handleDownload}>Download Excel</button>
       )}
 
       {successMsg && <div className="success-msg">{successMsg}</div>}

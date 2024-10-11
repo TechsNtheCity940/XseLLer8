@@ -1,9 +1,9 @@
 import './App.css';
 import React, { useState } from 'react';
-import FileUpload from './components/FileUpload';
-import CostTracking from './components/CostTracking';
-import Inventory from './components/Inventory';
-import Forecasting from './components/Forecasting';
+import FileUpload from './components/FileUpload.jsx';
+import CostTracking from './components/CostTracking.jsx';
+import Inventory from './components/Inventory.jsx';
+import Forecasting from './components/Forecasting.jsx';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -48,8 +48,12 @@ function App() {
 
   return (
     <div className="App">
+      {/* Logo in the top right corner */}
+      <img src={`${process.env.PUBLIC_URL}/TECHS IN THE CITY.png`} alt="Corner Logo" className="corner-logo" />
+
       <aside className="sidebar">
         <h1>XseLLer8</h1>
+        <img src={`${process.env.PUBLIC_URL}/logo.png`} alt="XseLLer8 Logo" className="logo" />
         <nav>
           <button className={activeTab === 'fileUpload' ? 'active' : ''} onClick={() => setActiveTab('fileUpload')}>
             Upload Invoice
