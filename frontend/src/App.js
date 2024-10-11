@@ -4,8 +4,11 @@ import FileUpload from './components/FileUpload';
 import CostTracking from './components/CostTracking';
 import Inventory from './components/Inventory';
 import Forecasting from './components/Forecasting';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
+  const [activeTab, setActiveTab] = useState('fileUpload');
   const [invoices, setInvoices] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [sales, setSales] = useState([]);
@@ -14,6 +17,8 @@ function App() {
     setInvoices([...invoices, ...parsedData]);
     updateInventory(parsedData);
     updateCostTracking(parsedData);
+    // Trigger success notification
+    toast.success('File uploaded successfully!');
   };
 
   const updateInventory = (invoiceData) => {
@@ -30,27 +35,42 @@ function App() {
     setSales([...sales, { month: new Date().getMonth(), cost: totalCost }]);
   };
 
+  const renderContent = () => {
+    return (
+      <div className="content-container content-container-enter">
+        {activeTab === 'fileUpload' && <FileUpload onFileUpload={handleFileUpload} />}
+        {activeTab === 'costTracking' && <CostTracking invoices={invoices} />}
+        {activeTab === 'inventory' && <Inventory inventory={inventory} />}
+        {activeTab === 'forecasting' && <Forecasting sales={sales} />}
+      </div>
+    );
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src="/logo.png" alt="Logo" className="logo" />
-        <h1>XseLLer8 by TECHS IN THE CITY</h1>
+      <aside className="sidebar">
+        <h1>XseLLer8</h1>
         <nav>
-          <button onClick={() => window.scrollTo(0, document.body.scrollHeight)}>Upload Invoice</button>
-          <button>Inventory</button>
-          <button>Processed Files</button>
-          <button>Upload Sales</button>
-          <button>Settings</button>
+          <button className={activeTab === 'fileUpload' ? 'active' : ''} onClick={() => setActiveTab('fileUpload')}>
+            Upload Invoice
+          </button>
+          <button className={activeTab === 'costTracking' ? 'active' : ''} onClick={() => setActiveTab('costTracking')}>
+            Cost Tracking
+          </button>
+          <button className={activeTab === 'inventory' ? 'active' : ''} onClick={() => setActiveTab('inventory')}>
+            Inventory
+          </button>
+          <button className={activeTab === 'forecasting' ? 'active' : ''} onClick={() => setActiveTab('forecasting')}>
+            Forecasting
+          </button>
         </nav>
-      </header>
-      <main>
-        <div className="content-wrapper">
-          <FileUpload onFileUpload={handleFileUpload} />
-          <CostTracking invoices={invoices} />
-          <Inventory inventory={inventory} />
-          <Forecasting sales={sales} />
+      </aside>
+      <main className="content-area">
+        <div className="content-container">
+          {renderContent()}
         </div>
       </main>
+      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} closeOnClick pauseOnHover draggable />
     </div>
   );
 }

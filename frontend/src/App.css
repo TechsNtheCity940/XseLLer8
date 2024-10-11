@@ -1,71 +1,68 @@
 body {
+  margin: 0;
   font-family: 'Roboto', sans-serif;
   background-color: #f4f4f4;
   color: #333;
-  margin: 0;
-  padding: 0;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
 }
 
-.App-header {
+.App {
+  display: flex;
+  height: 100%;
+}
+
+/* Sidebar styling */
+.sidebar {
+  width: 250px;
   background-color: #1f2937;
   padding: 20px;
   color: #f1c40f;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar h1 {
+  color: #fff;
+  font-size: 2rem;
   text-align: center;
-  position: relative;
+  margin-bottom: 40px;
 }
 
-.App-header h1 {
-  font-size: 3rem;
-  letter-spacing: 1.5px;
-  font-weight: bold;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.logo {
-  position: absolute;
-  left: 20px;
-  top: 10px;
-  width: 80px;
-}
-
-nav {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-}
-
-nav button {
-  background-color: #f1c40f;
-  color: #000;
-  padding: 10px 20px;
+.sidebar nav button {
+  width: 100%;
+  background-color: #333;
+  color: #fff;
+  padding: 15px;
+  margin-bottom: 15px;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
-  font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
-nav button:hover {
-  background-color: #ff4500;
-  color: #fff;
+.sidebar nav button:hover, .sidebar nav button.active {
+  background-color: #f1c40f;
+  color: #000;
 }
 
-main {
+.content-area {
+  flex: 1;
+  background-color: #053f05;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 40px;
-  max-width: 1200px;
-  margin: 40px auto;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
-.content-wrapper {
+.content-container {
+  width: 100%;
+  max-width: 1200px;
+  background-color: #02330a;
   padding: 20px;
-  background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .loading-spinner {
@@ -82,3 +79,32 @@ main {
   to { transform: rotate(360deg); }
 }
 
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100px;
+  }
+
+  .sidebar h1 {
+    font-size: 1.5rem;
+  }
+
+  .sidebar nav button {
+    font-size: 0.8rem;
+    padding: 10px;
+  }
+}
+/* Smooth transition for content when changing tabs */
+.content-container {
+  transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+}
+
+.content-container-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.content-container-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+}

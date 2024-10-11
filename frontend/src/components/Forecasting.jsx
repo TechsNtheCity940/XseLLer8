@@ -1,17 +1,44 @@
+// components/Forecasting.jsx
 import React from 'react';
+import { Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 
-const Forecasting = ({ sales }) => {
-  const totalSales = sales.reduce((acc, sale) => acc + sale.cost, 0);
-  const months = [...new Set(sales.map((sale) => sale.month))];
-  const avgSales = months.length > 0 ? (totalSales / months.length).toFixed(2) : 0;
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
+function Forecasting({ sales }) {
+  const chartData = {
+    labels: sales.map(sale => `Month ${sale.month}`), // Example label for each month
+    datasets: [
+      {
+        label: 'Cost Forecast',
+        data: sales.map(sale => sale.cost),
+        borderColor: 'rgba(75,192,192,1)',
+        backgroundColor: 'rgba(75,192,192,0.2)',
+        fill: true,
+        tension: 0.4,  // Smooth lines
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Sales Cost Forecast',
+      },
+    },
+  };
 
   return (
     <div>
-      <h2>Sales Forecasting</h2>
-      <p>Total Sales: ${totalSales.toFixed(2)}</p>
-      <p>Average Monthly Sales: ${avgSales}</p>
+      <h2>Forecasting</h2>
+      <Line data={chartData} options={chartOptions} />
     </div>
   );
-};
+}
 
 export default Forecasting;
