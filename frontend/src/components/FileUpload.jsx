@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const FileUpload = ({ setIsProcessing }) => { // Ensure setIsProcessing is received correctly
+const FileUpload = () => {
   const [file, setFile] = useState(null);
   const [extractedText, setExtractedText] = useState('');
   const [excelPath, setExcelPath] = useState('');
@@ -25,7 +25,6 @@ const FileUpload = ({ setIsProcessing }) => { // Ensure setIsProcessing is recei
     }
 
     logAction('Starting file processing...');
-    setIsProcessing(true); // This will trigger the spinner
     const formData = new FormData();
     formData.append('file', file);
     formData.append('deliveryDate', '2024-10-12');
@@ -43,8 +42,6 @@ const FileUpload = ({ setIsProcessing }) => { // Ensure setIsProcessing is recei
       logAction('Error during file processing: ' + error.message);
       setErrorMsg('Failed to process the file.');
       setSuccessMsg('');
-    } finally {
-      setIsProcessing(false); // This stops the spinner
     }
   };
 

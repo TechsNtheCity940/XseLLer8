@@ -19,44 +19,34 @@ if not os.path.exists(UPLOAD_FOLDER):
 inventory_data = []
 processed_files = []
 
-# Function to detect and correct image orientation
-def correct_image_orientation(image_path):
+# Route to handle file upload and text extraction
+@app.route('/process', methods=['POST'])
+def process_file():
+    file = request.files['file']
+    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
+    file.save(file_path)
+
     try:
-        image = Image.open(image_path)
+        # Extract text from the image
+        extracted_text = extract_text(file_path)
 
-        # Check for EXIF data and orientation tag
-        for orientation in ExifTags.TAGS.keys():
-            if ExifTags.TAGS[orientation] == 'Orientation':
-                break
+        # Save the extracted text to an Excel file
+        delivery_date = request.form.get('deliveryDate', 'Not Available')
+        invoice_total = request.form.get('invoiceTotal', 'Not Available')
+        excel_path = save_text_to_excel(extracted_text, delivery_date, invoice_total, file.filename)
 
-        exif = image._getexif()
-
-        if exif and orientation in exif:
-            if exif[orientation] == 3:
-                image = image.rotate(180, expand=True)
-            elif exif[orientation] == 6:
-                image = image.rotate(270, expand=True)
-            elif exif[orientation] == 8:
-                image = image.rotate(90, expand=True)
-
-        # Save the corrected image
-        corrected_image_path = os.path.join(UPLOAD_FOLDER, 'corrected_' + os.path.basename(image_path))
-        image.save(corrected_image_path)
-        return corrected_image_path
-
+        return jsonify({'extractedText': extracted_text, 'excelPath': excel_path}), 200
     except Exception as e:
-        print(f"Error in correcting image orientation: {e}")
-        return image_path  # Return original if correction fails
+        print(f"Error during file processing: {e}")
+        return jsonify({'error': str(e)}), 500
 
-# OCR function after correcting orientation
-def extract_text(image_path):
-    corrected_image_path = correct_image_orientation(image_path)
 
-    with tesserocr.PyTessBaseAPI(path=r'C:/Users/wonde/AppData/Local/Programs/Tesseract-OCR/tessdata') as api:
-        api.SetImageFile(corrected_image_path)
+# Helper function for OCR extraction using Tesseract
+def extract_text(file_path):
+    with PyTessBaseAPI(path=r'C:/Users/wonde/AppData/Local/Programs/Tesseract-OCR/tessdata') as api:
+        api.SetImageFile(file_path)
         extracted_text = api.GetUTF8Text()
-
-    return extracted_text
+        return extracted_text
 
 # Function to save the extracted data to an Excel file
 def save_text_to_excel(extracted_text, delivery_date, invoice_total, filename):
@@ -125,31 +115,6 @@ def save_text_to_excel(extracted_text, delivery_date, invoice_total, filename):
     })
 
     return temp_file.name
-
-# Single route to process file, extract text, and optionally save to Excel
-@app.route('/process', methods=['POST'])
-def process_file():
-    file = request.files['file']
-    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    file.save(file_path)
-
-    try:
-        # Extract text from the image (with orientation correction)
-        extracted_text = extract_text(file_path)
-
-        # Optionally save the extracted text to an Excel file if `deliveryDate` and `invoiceTotal` are provided
-        delivery_date = request.form.get('deliveryDate')
-        invoice_total = request.form.get('invoiceTotal')
-
-        if delivery_date and invoice_total:
-            excel_path = save_text_to_excel(extracted_text, delivery_date, invoice_total, file.filename)
-            return jsonify({'extractedText': extracted_text, 'excelPath': excel_path}), 200
-        else:
-            return jsonify({'extractedText': extracted_text}), 200
-
-    except Exception as e:
-        print(f"Error during file processing: {e}")
-        return jsonify({'error': str(e)}), 500
 
 @app.route('/upload_sales', methods=['POST'])
 def upload_sales():

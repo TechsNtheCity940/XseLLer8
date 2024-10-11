@@ -1,6 +1,5 @@
 import './App.css';
 import React, { useState } from 'react';
-import './App.css';
 import FileUpload from './components/FileUpload';
 import CostTracking from './components/CostTracking';
 import Inventory from './components/Inventory';
@@ -12,15 +11,12 @@ function App() {
   const [sales, setSales] = useState([]);
 
   const handleFileUpload = (parsedData) => {
-    // Handle parsed data from FileUpload component (invoices)
     setInvoices([...invoices, ...parsedData]);
-    // Update inventory and cost tracking based on invoices
     updateInventory(parsedData);
     updateCostTracking(parsedData);
   };
 
   const updateInventory = (invoiceData) => {
-    // Update inventory based on invoice data
     const updatedInventory = invoiceData.map(item => ({
       name: item.name,
       quantity: item.quantity,
@@ -30,7 +26,6 @@ function App() {
   };
 
   const updateCostTracking = (invoiceData) => {
-    // Log costs and update sales data based on invoices
     const totalCost = invoiceData.reduce((acc, item) => acc + item.price * item.quantity, 0);
     setSales([...sales, { month: new Date().getMonth(), cost: totalCost }]);
   };
@@ -38,13 +33,23 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
+        <img src="/logo.png" alt="Logo" className="logo" />
         <h1>XseLLer8 by TECHS IN THE CITY</h1>
+        <nav>
+          <button onClick={() => window.scrollTo(0, document.body.scrollHeight)}>Upload Invoice</button>
+          <button>Inventory</button>
+          <button>Processed Files</button>
+          <button>Upload Sales</button>
+          <button>Settings</button>
+        </nav>
       </header>
       <main>
-        <FileUpload onFileUpload={handleFileUpload} />
-        <CostTracking invoices={invoices} />
-        <Inventory inventory={inventory} />
-        <Forecasting sales={sales} />
+        <div className="content-wrapper">
+          <FileUpload onFileUpload={handleFileUpload} />
+          <CostTracking invoices={invoices} />
+          <Inventory inventory={inventory} />
+          <Forecasting sales={sales} />
+        </div>
       </main>
     </div>
   );

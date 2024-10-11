@@ -2,5 +2,8 @@
   "dependencies": {
     "chart.js": "^4.4.4",
     "react-chartjs-2": "^5.2.0"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
   }
 }
