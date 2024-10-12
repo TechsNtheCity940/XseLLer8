@@ -37,7 +37,7 @@ function App() {
 
   const renderContent = () => {
     return (
-      <div className="content-container content-container-enter">
+      <div className="content-container">
         {activeTab === 'fileUpload' && <FileUpload onFileUpload={handleFileUpload} />}
         {activeTab === 'costTracking' && <CostTracking invoices={invoices} />}
         {activeTab === 'inventory' && <Inventory inventory={inventory} />}
@@ -48,6 +48,9 @@ function App() {
 
   return (
     <div className="App">
+      {/* Background */}
+      <div className="background"></div>
+
       {/* Logo in the top right corner */}
       <img src={`${process.env.PUBLIC_URL}/TECHS IN THE CITY.png`} alt="Corner Logo" className="corner-logo" />
 
@@ -70,11 +73,18 @@ function App() {
         </nav>
       </aside>
       <main className="content-area">
-        <div className="content-container">
-          {renderContent()}
-        </div>
+        {renderContent()}
       </main>
-      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} closeOnClick pauseOnHover draggable />
+      
+      {/* Toast notification container */}
+      <ToastContainer 
+        position="top-right" 
+        autoClose={5000} 
+        hideProgressBar={false} 
+        closeOnClick 
+        pauseOnHover 
+        draggable 
+      />
     </div>
   );
 }

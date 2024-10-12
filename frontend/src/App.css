@@ -3,16 +3,29 @@ body {
   font-family: 'Roboto', sans-serif;
   margin: 0;
   padding: 0;
-  background: url("F:/WorkDevelopments-main/xsellFlaskReact/frontend/public/branding.png") no-repeat center center fixed; /* Replace with your background image */
-  background-size: cover;  /* Ensure the image covers the entire viewport */
-  background-color: #1f1f1f; /* Fallback background color */
   color: #e0e0e0;
+  background-color: #1f1f1f; /* Fallback color */
+  overflow: hidden; /* Prevent any accidental overflow */
 }
+
+/* Background container */
+.background {
+  position: fixed; /* Fix the background to the viewport */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1; /* Ensure it is behind all other elements */
+  background: url("F:/WorkDevelopments-main/XseLLer8/frontend/public/branding.png") no-repeat center center fixed; /* Replace with your background image */
+  background-size: cover; /* Ensure the image covers the entire viewport */
+}
+
 /* Ensure the background is behind all other elements */
 .App {
   position: relative; /* This ensures content is positioned above the background */
   z-index: 1; /* Ensures content is above the background */
 }
+
 /* Sidebar styling with gold accents */
 .sidebar {
   width: 250px;
@@ -23,7 +36,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  z-index: 2;
+  z-index: 2; /* Ensure it's above the background */
 }
 
 .sidebar h1 {
@@ -36,11 +49,11 @@ body {
 
 /* Logo styling */
 .logo {
-  width: 120px;
+  width: 240px;
   margin-bottom: 20px;
   border-radius: 8px;
-  z-index: 2;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  z-index: 2;
 }
 
 /* Navigation button styling */
@@ -73,12 +86,12 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  z-index: 1;
+  z-index: 1; /* Content should be above the background but below the sidebar */
 }
 
 .content-container {
   width: 100%;
-  max-width: 1000px;
+  max-width: 500px;
   background-color: #2f2f2f;
   padding: 20px;
   border-radius: 12px;
@@ -86,7 +99,19 @@ body {
   z-index: 1;
 }
 
-/* File Upload Section */
+/* Corner logo styling */
+.corner-logo {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 240px; /* Adjust size as needed */
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+/* File upload container styles remain the same */
 .file-upload-container {
   background-color: #2f2f2f;
   padding: 20px;
@@ -95,35 +120,10 @@ body {
   max-width: 600px;
   margin: 20px auto;
   text-align: center;
-  z-index: 2;
+  z-index: 2; /* Ensure it's above the background */
 }
 
-.file-upload-section {
-  margin-bottom: 20px;
-  z-index: 2;
-}
-
-.file-upload-section input[type="file"] {
-  display: block;
-  margin: 10px auto;
-  z-index: 2;
-}
-
-.file-upload-section button {
-  background-color: #f1c40f;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 2;
-}
-
-.file-upload-section button:disabled {
-  background-color: #555;
-  z-index: 2;
-}
-
-/* System Log and Extracted Text */
+/* Scrollable extracted text window */
 .extracted-text {
   margin-top: 20px;
   background-color: #333;
@@ -131,66 +131,12 @@ body {
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   color: #e0e0e0;
+  height: 100px;   /* Set a fixed height */
+  overflow-y: auto;  /* Enable vertical scrolling */
+  word-wrap: break-word;  /* Wrap long lines */
   z-index: 2;
 }
 
-.download-btn {
-  background-color: #f1c40f;
-  color: black;
-  padding: 10px 20px;
-  margin-top: 20px;
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 2;
-}
-
-.download-btn:hover {
-  background-color: #ffb400;
-  z-index: 2;
-}
-
-.success-msg {
-  color: #27ae60;
-  margin-top: 20px;
-  z-index: 2;
-}
-
-.error-msg {
-  color: #e74c3c;
-  margin-top: 20px;
-  z-index: 2;
-}
-
-.system-log {
-  margin-top: 20px;
-  text-align: left;
-  z-index: 2;
-}
-
-.system-log ul {
-  list-style: none;
-  padding: 0;
-  z-index: 2;
-}
-
-.system-log li {
-  background-color: #444;
-  padding: 10px;
-  margin-bottom: 5px;
-  border-left: 4px solid #f1c40f;
-  z-index: 2;
-}
-/* Corner logo styling */
-.corner-logo {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 300px; /* Adjust size as needed */
-  height: auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-  z-index: 2;
-}
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .sidebar {
@@ -213,14 +159,3 @@ body {
     padding: 15px;
   }
 }
-
-
-/* Logo styling */
-.logo {
-  width: 120px;
-  margin-bottom: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-  z-index: 2;
-}
-

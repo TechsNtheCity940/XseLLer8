@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react'; 
 import axios from 'axios';
 
 const FileUpload = () => {
@@ -8,6 +8,16 @@ const FileUpload = () => {
   const [logs, setLogs] = useState([]);  // System log state
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Reference to the scrollable div for scroll lock
+  const textDisplayRef = useRef(null);
+
+  // Scroll to the bottom whenever new text is added
+  useEffect(() => {
+    if (textDisplayRef.current) {
+      textDisplayRef.current.scrollTop = textDisplayRef.current.scrollHeight;
+    }
+  }, [extractedText, logs]);
 
   const logAction = (message) => {
     setLogs(prevLogs => [...prevLogs, message]);
