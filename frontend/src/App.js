@@ -52,7 +52,7 @@ function App() {
       <div className="background"></div>
 
       {/* Logo in the top right corner */}
-      <img src={`${process.env.PUBLIC_URL}/TECHS IN THE CITY.PNG`} alt="Corner Logo" className="corner-logo" />
+      <img src={`${process.env.PUBLIC_URL}/TiTCneons.png`} alt="Corner Logo" className="corner-logo" />
 
       <aside className="sidebar">
         <h1>XseLLer8</h1>
