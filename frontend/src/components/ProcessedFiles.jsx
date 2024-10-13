@@ -4,10 +4,10 @@ const ProcessedFiles = () => {
   const [processedFiles, setProcessedFiles] = useState([]);
 
   useEffect(() => {
-    // Fetch processed files data (replace with actual endpoint)
+    // Fetch processed files from the backend
     async function fetchProcessedFiles() {
       try {
-        const response = await fetch('http://localhost:5000/files');
+        const response = await fetch('http://localhost:5000/files');  // Example endpoint
         const data = await response.json();
         setProcessedFiles(data);
       } catch (error) {
@@ -41,3 +41,4 @@ const ProcessedFiles = () => {
 };
 
 export default ProcessedFiles;
+

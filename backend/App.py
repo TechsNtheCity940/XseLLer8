@@ -5,19 +5,23 @@ import tesserocr
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from tesserocr import PyTessBaseAPI
-from openpyxl import Workbook
-from PIL import Image, ExifTags
-import pandas as pd
+from openpyxl import load_workbook, Workbook
 
 app = Flask(__name__)
 CORS(app)
 
 UPLOAD_FOLDER = 'uploads'
+OUTPUT_FOLDER = 'output'  # Backend output folder for saving Excel
+EXCEL_FILE = os.path.join(OUTPUT_FOLDER, 'inventory.xlsx')
+
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-inventory_data = []
-processed_files = []
+if not os.path.exists(OUTPUT_FOLDER):
+    os.makedirs(OUTPUT_FOLDER)
+
+inventory_data = []  # This will hold the inventory for the frontend display
+processed_files = []  # This will store processed files for download
 
 # Route to handle file upload and text extraction
 @app.route('/process', methods=['POST'])
@@ -30,16 +34,15 @@ def process_file():
         # Extract text from the image
         extracted_text = extract_text(file_path)
 
-        # Save the extracted text to an Excel file
+        # Save the extracted text to the Excel file in the backend output folder
         delivery_date = request.form.get('deliveryDate', 'Not Available')
         invoice_total = request.form.get('invoiceTotal', 'Not Available')
-        excel_path = save_text_to_excel(extracted_text, delivery_date, invoice_total, file.filename)
+        excel_path = update_excel_file(extracted_text, delivery_date, invoice_total)
 
         return jsonify({'extractedText': extracted_text, 'excelPath': excel_path}), 200
     except Exception as e:
         print(f"Error during file processing: {e}")
         return jsonify({'error': str(e)}), 500
-
 
 # Helper function for OCR extraction using Tesseract
 def extract_text(file_path):
@@ -48,112 +51,89 @@ def extract_text(file_path):
         extracted_text = api.GetUTF8Text()
         return extracted_text
 
-# Function to save the extracted data to an Excel file
-def save_text_to_excel(extracted_text, delivery_date, invoice_total, filename):
-    workbook = Workbook()
-    worksheet = workbook.active
-    worksheet.title = "Extracted Data"
+# Function to update or create the Excel file with new data
+def update_excel_file(extracted_text, delivery_date, invoice_total):
+    # Check if the Excel file exists
+    if os.path.exists(EXCEL_FILE):
+        workbook = load_workbook(EXCEL_FILE)
+        worksheet = workbook.active
+    else:
+        workbook = Workbook()
+        worksheet = workbook.active
+        worksheet.title = "Inventory"
+        headers = ['Item#', 'Item Name', 'Brand', 'Pack Size', 'Price', 'Ordered', 'Confirmed Status']
+        worksheet.append(headers)
 
-    # Add the headers to the first row (corresponding to different columns)
-    headers = ['Item#', 'Item Name', 'Brand', 'Pack Size', 'Price', 'Ordered', 'Confirmed Status']
-    worksheet.append(headers)
+    # Existing data dictionary (to update if item already exists)
+    existing_data = {}
+    for row in worksheet.iter_rows(min_row=2, values_only=True):  # Skip headers
+        item_name = row[1]  # Assuming item name is in the second column
+        existing_data[item_name] = list(row)
 
-    # Split the extracted text into lines
+    # Process the extracted text line by line
     lines = extracted_text.split('\n')
-
-    # Iterate over each line and parse it into columns
     for line in lines:
-        # Strip leading/trailing spaces
         line = line.strip()
-
-        # Skip empty lines
         if not line:
             continue
 
-        # Adjust this regex based on your invoice format
-        # This assumes that fields are separated by one or more spaces or tabs
+        # Adjust regex based on your invoice format (assuming space or tab separation)
         match = re.split(r'\s{2,}|\t', line)
+        if len(match) >= 6:  # Make sure enough fields are present
+            item_number, item_name, brand, pack_size, price, ordered = match[:6]
 
-        # Check if we have enough fields for the row (e.g., expecting at least 6 fields)
-        if len(match) >= 6:
-            row = [
-                match[0],  # Item#
-                match[1],  # Item Name
-                match[2],  # Brand
-                match[3],  # Pack Size
-                match[4],  # Price
-                match[5],  # Ordered
-            ]
+            if item_name in existing_data:
+                # Update existing row
+                existing_row = existing_data[item_name]
+                existing_row[4] = price  # Update price
+                existing_row[5] = str(int(existing_row[5]) + int(ordered))  # Add ordered quantity
+                existing_data[item_name] = existing_row  # Update in dictionary
+            else:
+                # Add new item
+                new_row = [item_number, item_name, brand, pack_size, price, ordered, 'Confirmed']
+                existing_data[item_name] = new_row  # Add to dictionary
 
-            # Append the parsed row to the worksheet
-            worksheet.append(row)
-
-            # Save data to inventory list for display in Inventory
+            # Also update inventory_data for frontend API
             inventory_data.append({
-                'itemNumber': match[0],
-                'itemName': match[1],
-                'brand': match[2],
-                'packSize': match[3],
-                'price': match[4],
-                'ordered': match[5],
-                'status': 'Confirmed'  # Example status
+                'itemNumber': item_number,
+                'itemName': item_name,
+                'brand': brand,
+                'packSize': pack_size,
+                'price': price,
+                'ordered': ordered,
+                'status': 'Confirmed'
             })
 
-    # Add delivery date and invoice total at the bottom of the sheet
+    # Clear existing rows in the worksheet (except headers) and update with new data
+    worksheet.delete_rows(2, worksheet.max_row)
+    for row_data in existing_data.values():
+        worksheet.append(row_data)
+
+    # Append delivery date and invoice total
     worksheet.append([])
     worksheet.append(['Delivery Date:', delivery_date])
     worksheet.append(['Invoice Total:', invoice_total])
 
-    # Save the workbook to a temporary file
-    temp_file = tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False)
-    workbook.save(temp_file.name)
+    # Save the updated workbook to the backend output folder
+    workbook.save(EXCEL_FILE)
 
-    # Save processed file metadata for later download
+    # Store processed file information for download
     processed_files.append({
-        'name': filename,
-        'path': temp_file.name
+        'name': 'inventory.xlsx',
+        'path': EXCEL_FILE
     })
 
-    return temp_file.name
-
-@app.route('/upload_sales', methods=['POST'])
-def upload_sales():
-    file = request.files['file']
-    file_ext = os.path.splitext(file.filename)[1].lower()
-
-    try:
-        if file_ext == '.csv':
-            df = pd.read_csv(file)
-        elif file_ext in ['.xls', '.xlsx']:
-            df = pd.read_excel(file)
-        else:
-            return jsonify({'error': 'Unsupported file format'}), 400
-
-        # Assuming the sales sheet has columns like 'Item', 'Quantity', 'Price', and 'Month'
-        total_sales = (df['Quantity'] * df['Price']).sum()
-        monthly_sales = df.groupby('Month')['Quantity'].sum() * df.groupby('Month')['Price'].mean()
-
-        # Sample cost calculation (assumed from sales data or predefined)
-        monthly_costs = monthly_sales * 0.7  # Assume costs are 70% of sales
-
-        # Return sales figures
-        return jsonify({
-            'totalSales': total_sales,
-            'averageMonthlySales': total_sales / 12,  # Simplified calculation
-            'monthlySales': monthly_sales.tolist(),
-            'monthlyCosts': monthly_costs.tolist()
-        }), 200
-
-    except Exception as e:
-        print(f"Error parsing sales data: {e}")
-        return jsonify({'error': str(e)}), 500
+    return EXCEL_FILE
 
 # Route to download the Excel file
 @app.route('/download/<path:filename>', methods=['GET'])
 def download_excel(filename):
-    return send_file(filename, as_attachment=True)
+    file_path = os.path.join(OUTPUT_FOLDER, os.path.basename(filename))
+    if not os.path.exists(file_path):
+        return jsonify({'error': 'File not found.'}), 404
+    return send_file(file_path, as_attachment=True)
 
-# Route to get inventory data
+# Route to get inventory data for frontend
 @app.route('/inventory', methods=['GET'])
 def get_inventory():
     return jsonify(inventory_data), 200

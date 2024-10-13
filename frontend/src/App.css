@@ -82,7 +82,7 @@ body {
 .content-area {
   flex: 1;
   background-color: #1f1f1f;
-  padding: 40px;
+  padding: 0px;
   display: flex;
   justify-content: center;
   align-items: flex-start;

@@ -4,10 +4,10 @@ const Inventory = () => {
   const [inventoryData, setInventoryData] = useState([]);
 
   useEffect(() => {
-    // Fetch inventory data from backend or local state (replace with actual data source)
+    // Fetch inventory data from backend
     async function fetchInventory() {
       try {
-        const response = await fetch('http://localhost:5000/inventory'); // Example endpoint
+        const response = await fetch('http://localhost:5000/inventory');  // Example endpoint
         const data = await response.json();
         setInventoryData(data);
       } catch (error) {
