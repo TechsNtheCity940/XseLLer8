@@ -91,9 +91,9 @@ body {
 
 .content-container {
   width: 100%;
-  max-width: 500px;
+  max-width: 500.px;
   background-color: #2f2f2f;
-  padding: 20px;
+  padding: 0%;
   border-radius: 12px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
   z-index: 1;
@@ -114,11 +114,11 @@ body {
 /* File upload container styles remain the same */
 .file-upload-container {
   background-color: #2f2f2f;
-  padding: 20px;
+  padding: 0px;
   border-radius: 12px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   max-width: 600px;
-  margin: 20px auto;
+  margin: 0px auto;
   text-align: center;
   z-index: 2; /* Ensure it's above the background */
 }
