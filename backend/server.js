@@ -6,7 +6,16 @@ const fs = require('fs');
 const tesseract = require('tesseract.js');
 const ExcelJS = require('exceljs');
 const chokidar = require('chokidar'); // For automating text-to-Excel conversion
+const cors = require('cors');
 
+// Add this line to ensure CORS is configured correctly
+const corsOptions = {
+  origin: 'http://localhost:3000', // Allow your React frontend
+  optionsSuccessStatus: 200,
+};
+
+// Then use CORS with these options
+app.use(cors(corsOptions));
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -67,75 +76,80 @@ function saveTextToTxt(extracted_text, filename) {
     return txt_path;
 }
 
-// Function to map the parsed text data directly into the Excel columns
 async function mapTextToExcel(filePath) {
-    let workbook = new ExcelJS.Workbook();
-
-    // Create or load the inventory.xlsx file
-    if (fs.existsSync(EXCEL_FILE)) {
+    try {
+      let workbook = new ExcelJS.Workbook();
+  
+      // Create or load the inventory.xlsx file
+      if (fs.existsSync(EXCEL_FILE)) {
         await workbook.xlsx.readFile(EXCEL_FILE);
-    } else {
+      } else {
         const worksheet = workbook.addWorksheet('Inventory');
         worksheet.columns = [
-            { header: 'Item#', key: 'item', width: 15 },
-            { header: 'Item Name', key: 'name', width: 30 },
-            { header: 'Brand', key: 'brand', width: 20 },
-            { header: 'Pack Size', key: 'packSize', width: 15 },
-            { header: 'Price', key: 'price', width: 10 },
-            { header: 'Ordered', key: 'ordered', width: 10 },
-            { header: 'Status', key: 'status', width: 15 }
+          { header: 'Item#', key: 'item', width: 15 },
+          { header: 'Item Name', key: 'name', width: 30 },
+          { header: 'Brand', key: 'brand', width: 20 },
+          { header: 'Pack Size', key: 'packSize', width: 15 },
+          { header: 'Price', key: 'price', width: 10 },
+          { header: 'Ordered', key: 'ordered', width: 10 },
+          { header: 'Status', key: 'status', width: 15 }
         ];
-    }
-
-    const worksheet = workbook.getWorksheet('Inventory');
-
-    // Read the text file and extract items
-    const text = fs.readFileSync(filePath, 'utf8');
-    const lines = text.split('\n').map(line => line.trim());
-    let parsingItems = false;
-
-    lines.forEach(line => {
+      }
+  
+      const worksheet = workbook.getWorksheet('Inventory');
+      
+      // Read the text file and extract items
+      const text = fs.readFileSync(filePath, 'utf8');
+      console.log('Reading text file:', filePath); // Debug log
+      const lines = text.split('\n').map(line => line.trim());
+      let parsingItems = false;
+  
+      lines.forEach(line => {
         if (line.startsWith('TEE TEN BRAND')) {
-            parsingItems = true;
-            return;
+          parsingItems = true;
+          return;
         }
-
+  
         if (parsingItems) {
-            const match = line.split(/\s{2,}|\t+/);
-            if (match.length >= 6) {
-                const [itemNumber, itemName, brand, packSize, price, ordered, status] = match;
-                worksheet.addRow({
-                    item: itemNumber,
-                    name: itemName,
-                    brand: brand,
-                    packSize: packSize,
-                    price: parseFloat(price.replace('$', '')) || 0,
-                    ordered: parseInt(ordered) || 0,
-                    status: status || 'Unknown'
-                });
-            }
+          const match = line.split(/\s{2,}|\t+/);
+          if (match.length >= 6) {
+            const [itemNumber, itemName, brand, packSize, price, ordered, status] = match;
+            worksheet.addRow({
+              item: itemNumber,
+              name: itemName,
+              brand: brand,
+              packSize: packSize,
+              price: parseFloat(price.replace('$', '')) || 0,
+              ordered: parseInt(ordered) || 0,
+              status: status || 'Unknown'
+            });
+          }
         }
-    });
-
-    // Save the workbook
-    await workbook.xlsx.writeFile(EXCEL_FILE);
-    console.log(`Excel file updated and saved at: ${EXCEL_FILE}`);
-}
+      });
+  
+      // Save the workbook
+      await workbook.xlsx.writeFile(EXCEL_FILE);
+      console.log(`Excel file updated and saved at: ${EXCEL_FILE}`);
+    } catch (err) {
+      console.error('Error in mapTextToExcel:', err); // Log any errors
+    }
+  }
+  
 
 // Watch the output folder for new .txt files (from Tesseract extraction)
 const watcher = chokidar.watch(OUTPUT_FOLDER, {
     persistent: true,
     ignoreInitial: true,
     awaitWriteFinish: true
-});
-
-// Event handler for when a new .txt file is added
-watcher.on('add', filePath => {
+  });
+  
+  // Event handler for when a new .txt file is added
+  watcher.on('add', filePath => {
     if (path.extname(filePath) === '.txt') {
-        console.log(`New .txt file detected: ${filePath}`);
-        mapTextToExcel(filePath).catch(err => console.error('Error mapping text to Excel:', err));
+      console.log(`New .txt file detected: ${filePath}`); // Log the detected file
+      mapTextToExcel(filePath).catch(err => console.error('Error mapping text to Excel:', err));
     }
-});
+  });
 
 // Route to download the Excel file
 app.get('/download/:filename', (req, res) => {
