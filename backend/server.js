@@ -81,68 +81,71 @@ function saveTextToTxt(extracted_text, filename) {
     return txt_path;
 }
 
-// Function to map the text data to Excel and save the Excel file in frontend output folder
 async function mapTextToExcel(filePath) {
     try {
-        let workbook = new ExcelJS.Workbook();
-
-        // Load or create the Excel file
-        if (fs.existsSync(EXCEL_FILE)) {
-            await workbook.xlsx.readFile(EXCEL_FILE);
-            console.log('Existing Excel file loaded.');
-        } else {
-            const worksheet = workbook.addWorksheet('Inventory');
-            worksheet.columns = [
-                { header: 'Item#', key: 'item', width: 15 },
-                { header: 'Item Name', key: 'name', width: 30 },
-                { header: 'Brand', key: 'brand', width: 20 },
-                { header: 'Pack Size', key: 'packSize', width: 15 },
-                { header: 'Price', key: 'price', width: 10 },
-                { header: 'Ordered', key: 'ordered', width: 10 },
-                { header: 'Status', key: 'status', width: 15 }
-            ];
-            console.log('New Excel file created with headers.');
-        }
-
-        const worksheet = workbook.getWorksheet('Inventory');
+      let workbook = new ExcelJS.Workbook();
+  
+      // Create or load the inventory.xlsx file
+      if (fs.existsSync(EXCEL_FILE)) {
+        await workbook.xlsx.readFile(EXCEL_FILE);
+        console.log('Existing Excel file loaded.');
+      } else {
+        const worksheet = workbook.addWorksheet('Inventory');
+        worksheet.columns = [
+          { header: 'Item#', key: 'item', width: 15 },
+          { header: 'Item Name', key: 'name', width: 30 },
+          { header: 'Brand', key: 'brand', width: 20 },
+          { header: 'Pack Size', key: 'packSize', width: 15 },
+          { header: 'Price', key: 'price', width: 10 },
+          { header: 'Ordered', key: 'ordered', width: 10 },
+          { header: 'Status', key: 'status', width: 15 }
+        ];
+        console.log('New Excel file created with headers.');
+      }
+  
+      const worksheet = workbook.getWorksheet('Inventory');
+      
+      // Read the text file and extract items
+      const text = fs.readFileSync(filePath, 'utf8');
+      console.log('Reading text file:', filePath);  // Debug log
+      const lines = text.split('\n').map(line => line.trim());
+      let parsingItems = false;
+  
+      // Iterate through each line to extract data
+      lines.forEach((line, index) => {
+        console.log(`Processing line ${index + 1}: ${line}`); // Debug log for each line
         
-        // Read the text file and extract items
-        const text = fs.readFileSync(filePath, 'utf8');
-        console.log('Reading text file:', filePath);  // Debug log
-        const lines = text.split('\n').map(line => line.trim());
-        let parsingItems = false;
-
-        lines.forEach(line => {
-            if (line.startsWith('TEE TEN BRAND')) {
-                parsingItems = true;
-                return;
-            }
-
-            if (parsingItems) {
-                const match = line.split(/\s{2,}|\t+/);
-                if (match.length >= 6) {
-                    const [itemNumber, itemName, brand, packSize, price, ordered, status] = match;
-                    worksheet.addRow({
-                        item: itemNumber,
-                        name: itemName,
-                        brand: brand,
-                        packSize: packSize,
-                        price: parseFloat(price.replace('$', '')) || 0,
-                        ordered: parseInt(ordered) || 0,
-                        status: status || 'Unknown'
-                    });
-                    console.log(`Row added: ${itemName}`);
-                }
-            }
-        });
-
-        // Save the Excel file to frontend output folder
-        await workbook.xlsx.writeFile(EXCEL_FILE);
-        console.log(`Excel file updated and saved at: ${EXCEL_FILE}`);
+        // If you have a clear delimiter (e.g., more than 2 spaces, tabs, or commas)
+        const match = line.split(/\s{2,}|\t+/);
+        
+        if (match.length >= 6) {  // Expecting at least 6 columns for data
+          console.log('Parsed data:', match);  // Log parsed data
+          
+          // Map the parsed text data to the correct columns in Excel
+          const [itemNumber, itemName, brand, packSize, price, ordered, status] = match;
+          worksheet.addRow({
+            item: itemNumber,
+            name: itemName,
+            brand: brand,
+            packSize: packSize,
+            price: parseFloat(price.replace('$', '')) || 0,
+            ordered: parseInt(ordered) || 0,
+            status: status || 'Unknown'
+          });
+          console.log(`Row added: ${itemName}`);  // Debug log for added row
+        } else {
+          console.log(`Skipping line ${index + 1}: Not enough columns`); // Debug log for skipped line
+        }
+      });
+  
+      // Save the workbook
+      await workbook.xlsx.writeFile(EXCEL_FILE);
+      console.log(`Excel file updated and saved at: ${EXCEL_FILE}`);
     } catch (err) {
-        console.error('Error in mapTextToExcel:', err);  // Log any errors
+      console.error('Error in mapTextToExcel:', err);  // Log any errors
     }
-}
+  }
+  
 
 // Watch the backend output folder for new .txt files
 const watcher = chokidar.watch(OUTPUT_FOLDER, {
