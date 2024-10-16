@@ -1,4 +1,3 @@
-// components/Forecasting.jsx
 import React from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
@@ -7,7 +6,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 
 function Forecasting({ sales }) {
   const chartData = {
-    labels: sales.map(sale => `Month ${sale.month}`), // Example label for each month
+    labels: sales.map(sale => `Month ${sale.month}`),  // Example label for each month
     datasets: [
       {
         label: 'Cost Forecast',
@@ -23,13 +22,8 @@ function Forecasting({ sales }) {
   const chartOptions = {
     responsive: true,
     plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Sales Cost Forecast',
-      },
+      legend: { position: 'top' },
+      title: { display: true, text: 'Sales Cost Forecast' },
     },
   };
 

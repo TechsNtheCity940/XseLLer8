@@ -1,8 +1,10 @@
 import './App.css';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FileUpload from './components/FileUpload.jsx';
 import CostTracking from './components/CostTracking.jsx';
-import Inventory from './components/Inventory.jsx';
+import InventoryTable from './components/Inventory.jsx';  // Table view for inventory
+import InventoryBarChart from './components/InventoryBarChart.jsx';  // Bar chart for inventory
+import InventoryPriceTrend from './components/InventoryPriceTrend.jsx';  // Price trend chart
 import Forecasting from './components/Forecasting.jsx';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -10,24 +12,47 @@ import 'react-toastify/dist/ReactToastify.css';
 function App() {
   const [activeTab, setActiveTab] = useState('fileUpload');
   const [invoices, setInvoices] = useState([]);
-  const [inventory, setInventory] = useState([]);
+  const [inventoryData, setInventoryData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [sales, setSales] = useState([]);
 
+  // Fetch inventory data from the server (backend)
+  useEffect(() => {
+    async function fetchInventoryData() {
+      try {
+        const response = await fetch('http://localhost:5000/inventory');
+        const data = await response.json();
+        setInventoryData(data);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching inventory data:", error);
+        setLoading(false);
+      }
+    }
+
+    fetchInventoryData();
+  }, []);
+
+  // Handle file upload and update the inventory
   const handleFileUpload = (parsedData) => {
     setInvoices([...invoices, ...parsedData]);
     updateInventory(parsedData);
     updateCostTracking(parsedData);
-    // Trigger success notification
     toast.success('File uploaded successfully!');
   };
 
   const updateInventory = (invoiceData) => {
     const updatedInventory = invoiceData.map(item => ({
-      name: item.name,
-      quantity: item.quantity,
+      itemNumber: item.itemNumber,
+      itemName: item.name,
+      brand: item.brand,
+      packSize: item.packSize,
       price: item.price,
+      ordered: item.quantity,
+      status: item.status,
     }));
-    setInventory([...inventory, ...updatedInventory]);
+
+    setInventoryData([...inventoryData, ...updatedInventory]);
   };
 
   const updateCostTracking = (invoiceData) => {
@@ -36,11 +61,21 @@ function App() {
   };
 
   const renderContent = () => {
+    if (loading) {
+      return <div>Loading...</div>;
+    }
+
     return (
       <div className="content-container">
         {activeTab === 'fileUpload' && <FileUpload onFileUpload={handleFileUpload} />}
         {activeTab === 'costTracking' && <CostTracking invoices={invoices} />}
-        {activeTab === 'inventory' && <Inventory inventory={inventory} />}
+        {activeTab === 'inventory' && (
+          <div>
+            <InventoryTable data={inventoryData} />  {/* Inventory Table */}
+            <InventoryBarChart data={inventoryData} />  {/* Inventory Bar Chart */}
+            <InventoryPriceTrend data={inventoryData} />  {/* Inventory Price Trend */}
+          </div>
+        )}
         {activeTab === 'forecasting' && <Forecasting sales={sales} />}
       </div>
     );
@@ -48,12 +83,8 @@ function App() {
 
   return (
     <div className="App">
-      {/* Background */}
       <div className="background"></div>
-
-      {/* Logo in the top right corner */}
       <img src={`${process.env.PUBLIC_URL}/TiTCneons.png`} alt="Corner Logo" className="corner-logo" />
-
       <aside className="sidebar">
         <h1>XseLLer8</h1>
         <img src={`${process.env.PUBLIC_URL}/logo.png`} alt="XseLLer8 Logo" className="logo" />
@@ -76,15 +107,7 @@ function App() {
         {renderContent()}
       </main>
       
-      {/* Toast notification container */}
-      <ToastContainer 
-        position="top-right" 
-        autoClose={5000} 
-        hideProgressBar={false} 
-        closeOnClick 
-        pauseOnHover 
-        draggable 
-      />
+      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} closeOnClick pauseOnHover draggable />
     </div>
   );
 }

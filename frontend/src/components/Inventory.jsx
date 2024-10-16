@@ -1,48 +1,43 @@
+// Example of fetching JSON data and displaying it in a table in React
 import React, { useState, useEffect } from 'react';
 
 const Inventory = () => {
   const [inventoryData, setInventoryData] = useState([]);
 
   useEffect(() => {
-    // Fetch inventory data from backend
-    async function fetchInventory() {
-      try {
-        const response = await fetch('http://localhost:5000/inventory');  // Example endpoint
-        const data = await response.json();
-        setInventoryData(data);
-      } catch (error) {
-        console.error("Error fetching inventory data:", error);
-      }
+    async function fetchData() {
+      const response = await fetch('http://localhost:5000/inventory');  // Replace with your API route
+      const data = await response.json();
+      setInventoryData(Object.entries(data));  // Convert JSON object to array
     }
-    fetchInventory();
+
+    fetchData();
   }, []);
 
   return (
     <div className="inventory">
-      <h2>Inventory</h2>
+      <h2>Inventory Data</h2>
       {inventoryData.length > 0 ? (
         <table>
           <thead>
             <tr>
-              <th>Item#</th>
+              <th>Item ID</th>
               <th>Item Name</th>
-              <th>Brand</th>
-              <th>Pack Size</th>
               <th>Price</th>
-              <th>Ordered</th>
-              <th>Status</th>
+              <th>Category</th>
+              <th>Quantity</th>
+              <th>Date</th>
             </tr>
           </thead>
           <tbody>
-            {inventoryData.map((item, index) => (
-              <tr key={index}>
-                <td>{item.itemNumber}</td>
-                <td>{item.itemName}</td>
-                <td>{item.brand}</td>
-                <td>{item.packSize}</td>
+            {inventoryData.map(([id, item]) => (
+              <tr key={id}>
+                <td>{id}</td>
+                <td>{item.name}</td>
                 <td>{item.price}</td>
-                <td>{item.ordered}</td>
-                <td>{item.status}</td>
+                <td>{item.category}</td>
+                <td>{item.quantity}</td>
+                <td>{item.date}</td>
               </tr>
             ))}
           </tbody>

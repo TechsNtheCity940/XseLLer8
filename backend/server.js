@@ -76,57 +76,67 @@ async function extractText(file_path) {
         throw error;
     }
 }
-// Function to process the extracted text into a structured JSON dictionary
 function mapTextToJSON(extracted_text) {
     const lines = extracted_text.split('\n').map(line => line.trim());
     const jsonData = {};
-    let currentItem = {};
+    let currentItem = {};  // To store the current item being processed
+    let currentItemNumber = '';  // Store item number to associate with additional data
 
     console.log("Processing lines from extracted text...");
 
+    // Regular expression patterns
+    const itemNumberPattern = /^[A-Za-z0-9]+$/;
+    const numericPattern = /^[0-9]+(\.[0-9]+)?$/;
+
     lines.forEach((line, index) => {
-        if (!line) return;  // Skip empty lines
-
-        // Use a more strict approach, expecting at least 6 fields, separated by multiple spaces or tabs
-        const match = line.split(/\s{2,}|\t+/);
-
-        // Check if we have enough fields, if not log and skip this line
-        if (match.length < 6) {
-            console.log(`Skipping line due to insufficient data (Expected at least 6 columns, got ${match.length}): "${line}"`);
+        // Skip empty lines or irrelevant lines
+        if (!line || line.match(/Invoice|Customer|Delivery|pieces|Email|Branch|NAME/i)) {
+            console.log(`Skipping line due to irrelevant content: "${line}"`);
             return;
         }
 
-        // Safely assign each field with validation
-        const itemNumber = match[0] ? match[0].trim() : 'Unknown';
-        const itemName = match[1] ? match[1].trim() : 'Unknown';
-        const brand = match[2] ? match[2].trim() : 'Unknown';
-        const packSize = match[3] ? match[3].trim() : 'Unknown';
-        const price = match[4] ? parseFloat(match[4].replace('$', '').trim()) || 0 : 0;
-        const ordered = match[5] ? parseInt(match[5].trim()) || 0 : 0;
-        const status = match[6] ? match[6].trim() : 'Unknown';
+        const match = line.split(/\s{2,}|\t+/);  // Split by multiple spaces or tabs
 
-        // Add current item to the JSON structure
-        currentItem = {
-            'ITEM#': itemNumber,
-            'ITEM NAME': itemName,
-            'BRAND': brand,
-            'PACKSIZE': packSize,
-            'PRICE': price,
-            'ORDERED': ordered,
-            'STATUS': status,
-        };
+        // Check if the line might contain product data
+        if (match.length >= 1) {
+            // Check if first element looks like an item number
+            const itemNumber = match[0] && itemNumberPattern.test(match[0]) ? match[0].trim() : null;
 
-        // Log for debugging and tracking
-        console.log(`Processed item: ${JSON.stringify(currentItem)}`);
+            if (itemNumber) {
+                // If it's a valid item number, process the product data
+                const itemName = match.slice(1, match.length - 4).join(' ').trim();  // Capture everything until pack size
+                const packSize = match[match.length - 4] ? match[match.length - 4].trim() : 'Unknown';
+                const price = match[match.length - 3] ? parseFloat(match[match.length - 3].replace('$', '').trim()) || 0 : 0;
+                const ordered = match[match.length - 2] ? parseInt(match[match.length - 2].trim()) || 0 : 0;
+                const status = match[match.length - 1] ? match[match.length - 1].trim() : 'Unknown';
 
-        // Use the ITEM# as the key in the JSON object
-        jsonData[itemNumber] = currentItem;
+                // Construct the current item object
+                currentItem = {
+                    'ITEM#': itemNumber,
+                    'ITEM NAME': itemName,
+                    'PACKSIZE': packSize,
+                    'PRICE': price,
+                    'ORDERED': ordered,
+                    'STATUS': status,
+                };
+
+                currentItemNumber = itemNumber;  // Store the item number for future use
+                jsonData[itemNumber] = currentItem;  // Save the item into JSON
+
+                console.log(`Processed item: ${JSON.stringify(currentItem)}`);
+            }
+        } else if (line.match(/per case|per pound/i) && currentItemNumber) {
+            // Append additional details like "per case" or "per pound" to the previous item's pack size
+            jsonData[currentItemNumber]['PACKSIZE'] += ' ' + line.trim();
+            console.log(`Appended additional info to ${currentItemNumber}: ${line.trim()}`);
+        } else {
+            console.log(`Skipping line due to insufficient data: "${line}"`);
+        }
     });
 
     console.log('Final JSON Data:', jsonData);
     return jsonData;
 }
-
 // Function to save data to JSON file
 async function saveDataToJSONFile(data, filename) {
     try {
@@ -142,30 +152,27 @@ async function saveDataToJSONFile(data, filename) {
 // Example JSON data (for testing)
 const available_products = {
     1001: {
-        "ITEM#": 131080,
-        "ITEM NAME": "Beef Patty 75% Angus Wide",
-        "BRAND": "Winn Meat",
+        "ITEM#": "131080",
+        "ITEM NAME": "Beef Patty 75% Angus Wide Winn Meat",
         "PACKSIZE": "24/17 oz",
-        "PRICE": 38.13,
-        "ORDERED": 6,
-        "STATUS": "Filled"
+        "PRICE": "38.13",
+        "ORDERED": "6",
+        "STATUS": "6 Filled"
     },
     1002: {
-        "ITEM#": 550221,
-        "ITEM NAME": "Chicken Breast 8oz Butterfly",
-        "BRAND": "Koch Foods",
+        "ITEM#": "550221",
+        "ITEM NAME": "Chicken Breast 8oz ButterflyKoch Foods ",
         "PACKSIZE": "210 lb",
-        "PRICE": 69.13,
-        "ORDERED": 13,
+        "PRICE": "69.13",
+        "ORDERED": "13",
         "STATUS": "Filled"
     },
     1003: {
-        "ITEM#": 884043,
-        "ITEM NAME": "Mustard Yellow Upside Down",
-        "BRAND": "Heinz",
+        "ITEM#": "884043",
+        "ITEM NAME": "Mustard Yellow Upside Down Heinz",
         "PACKSIZE": "16/13 oz",
-        "PRICE": 31.77,
-        "ORDERED": 2,
+        "PRICE": "$31.77",
+        "ORDERED": "2",
         "STATUS": "Out of stock"
     }
 };
