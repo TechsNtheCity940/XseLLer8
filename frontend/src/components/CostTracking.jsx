@@ -2,8 +2,8 @@ import React from 'react';
 
 const CostTracking = ({ invoices }) => {
   const totalCost = invoices.reduce((acc, item) => {
-    if (item.ordered > 0 && item.price > 0) {
-      return acc + item.price * item.ordered;
+    if (item.ORDERED > 0 && item.PRICE > 0) {
+      return acc + item.PRICE * item.ORDERED;
     }
     return acc;
   }, 0);
@@ -23,9 +23,9 @@ const CostTracking = ({ invoices }) => {
         <tbody>
           {invoices.map((invoice, index) => (
             <tr key={index}>
-              <td>{invoice.itemName}</td>
-              <td>{invoice.ordered}</td>
-              <td>${invoice.price > 0 ? invoice.price.toFixed(2) : 'Invalid'}</td>
+              <td>{invoice['ITEM NAME']}</td>
+              <td>{invoice.ORDERED}</td>
+              <td>${invoice.PRICE.toFixed(2)}</td>
             </tr>
           ))}
         </tbody>

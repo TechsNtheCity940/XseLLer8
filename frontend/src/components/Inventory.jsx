@@ -1,18 +1,25 @@
-// Example of fetching JSON data and displaying it in a table in React
 import React, { useState, useEffect } from 'react';
 
 const Inventory = () => {
   const [inventoryData, setInventoryData] = useState([]);
 
   useEffect(() => {
+    // Fetch the inventory data from the backend API
     async function fetchData() {
-      const response = await fetch('http://localhost:5000/inventory');  // Replace with your API route
-      const data = await response.json();
-      setInventoryData(Object.entries(data));  // Convert JSON object to array
+      try {
+        const response = await fetch('http://localhost:5000/inventory');  // API route to fetch data
+        if (!response.ok) {
+          throw new Error(`Failed to fetch inventory: ${response.statusText}`);
+        }
+        const data = await response.json();
+        setInventoryData(Object.entries(data));  // Convert JSON object to array for easier rendering
+      } catch (error) {
+        console.error('Error fetching inventory data:', error);
+      }
     }
 
     fetchData();
-  }, []);
+  }, []);  // Only fetch once on component mount
 
   return (
     <div className="inventory">
@@ -24,20 +31,20 @@ const Inventory = () => {
               <th>Item ID</th>
               <th>Item Name</th>
               <th>Price</th>
-              <th>Category</th>
               <th>Quantity</th>
-              <th>Date</th>
+              <th>Status</th>
+              <th>Last Updated</th>
             </tr>
           </thead>
           <tbody>
             {inventoryData.map(([id, item]) => (
               <tr key={id}>
                 <td>{id}</td>
-                <td>{item.name}</td>
-                <td>{item.price}</td>
-                <td>{item.category}</td>
-                <td>{item.quantity}</td>
-                <td>{item.date}</td>
+                <td>{item['ITEM NAME']}</td>
+                <td>${item.PRICE.toFixed(2)}</td>
+                <td>{item.ORDERED}</td>
+                <td>{item.STATUS}</td>
+                <td>{new Date(item.lastUpdated).toLocaleDateString()}</td>
               </tr>
             ))}
           </tbody>
