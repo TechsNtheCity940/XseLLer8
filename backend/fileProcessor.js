@@ -181,3 +181,4 @@ processFiles(inputFolder, outputFile).then(() => {
     console.error('Error during processing:', error);
 });
 
+

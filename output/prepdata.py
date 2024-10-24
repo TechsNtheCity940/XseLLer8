@@ -43,11 +43,8 @@ def parse_data(file_path):
     df = pd.DataFrame(data)
 
     # Step 5: Clean the DataFrame by filling missing values or adjusting the format
-    df['Category'].fillna('Miscellaneous', inplace=True)
+    df['Category'] = df['Category'].fillna('Miscellaneous')
     df['Size'] = df['Size'].str.lower().replace('unknown', pd.NA)
-
-    # Display the structured data
-    import ace_tools as tools; tools.display_dataframe_to_user(name="Structured Invoice Data", dataframe=df)
 
     return df
 

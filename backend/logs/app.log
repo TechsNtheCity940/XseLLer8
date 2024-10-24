@@ -2425,3 +2425,10 @@ FileNotFoundError: [Errno 2] No such file or directory: 'F:/repogit/XseLLer8/fro
 2024-10-18T06:37:13.810Z [ERROR] - Uploaded file TKR LIQ order 9.11.23.csv is not a valid image
 2024-10-18T06:38:48.787Z [ERROR] - Uploaded file WS Toby's Keith EOM Inventory - December 2023.xlsx is not a valid image
 2024-10-18T07:06:36.313Z [ERROR] - Uploaded file extracted.txt is not a valid image
+2024-10-24T09:41:14.497Z [INFO] - Server is running on port 5000
+2024-10-24T09:41:14.529Z [INFO] - Detected new file: F:\repogit\XseLLer8\backend\output\extracted.txt
+2024-10-24T09:41:15.310Z [ERROR] - Failed to process and archive file F:\repogit\XseLLer8\backend\output\extracted.txt: Error: ENOENT: no such file or directory, open 'F:\repogit\XseLLer8\inventory_data.json'
+2024-10-24T10:01:56.612Z [INFO] - Server is running on port 5000
+2024-10-24T10:01:56.625Z [INFO] - Detected new file: F:\repogit\XseLLer8\backend\output\extracted.txt
+2024-10-24T10:01:57.314Z [ERROR] - Failed to process and archive file F:\repogit\XseLLer8\backend\output\extracted.txt: Error: ENOENT: no such file or directory, open 'F:\repogit\XseLLer8\inventory_data.json'
+2024-10-24T10:07:15.655Z [ERROR] - Failed to parse output from app.py: SyntaxError: Unexpected token 'T', "Text data "... is not valid JSON

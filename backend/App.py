@@ -86,23 +86,57 @@ def process_files(input_folder, output_file):
             text = re.sub(r'[^\w\s]', '', text)
             all_text += text + "\n"
     
+import os
+import re
+import json
+import pandas as pd
+import openpyxl
+
+def process_files(input_folder, output_file):
+    # Example processing of files to extract text
+    all_text = ""
+    for root, _, files in os.walk(input_folder):
+        for file_name in files:
+            file_path = os.path.join(root, file_name)
+            with open(file_path, 'r') as f:
+                all_text += f.read() + "\n"
+
     # Save extracted text to the specified output file
     with open(output_file, 'w') as file:
         file.write(all_text)
     print(f"Text data saved to {output_file}")
 
-# Example usage:
-input_folder = "F:/repogit/XseLLer8/testfiles"
-output_file = "F:/repogit/XseLLer8/output/extracted.txt"
-process_files(input_folder, output_file)
+def ensure_inventory_json_exists(file_path):
+    # Check if inventory_data.json exists, if not create an empty file
+    if not os.path.exists(file_path):
+        with open(file_path, 'w') as file:
+            json.dump([], file)  # Initialize with an empty list
+        print(f"Created {file_path} as it did not exist.")
 
-import re
-import pandas as pd
-import openpyxl
+def load_inventory_data(file_path):
+    # Ensure the inventory file exists
+    ensure_inventory_json_exists(file_path)
+
+    # Read the inventory data from the file
+    try:
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+            return data
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON from {file_path}: {e}")
+        return []  # Return an empty list if JSON is invalid
+
+def save_inventory_data(data, file_path):
+    # Save data to inventory_data.json
+    try:
+        with open(file_path, 'w') as file:
+            json.dump(data, file, indent=4)
+        print(f"Data successfully saved to {file_path}")
+    except Exception as e:
+        print(f"Error saving data to {file_path}: {e}")
 
 def find_headers(text):
     text = re.sub(r'[^\w\s]', '', text).lower()
-    words = text.split()
     headers = ['invoice_date', 'item_number', 'item', 'packsize', 'price', 'ordered', 'status', 'liquors', 'price_per_bottle', 'total', 'domestic_beer', 'import_beer', 'na_bev', 'beverage_supplies']
     return headers
 
@@ -110,36 +144,59 @@ def extract_data_with_headers(text):
     headers = find_headers(text)
     text_blocks = re.split(r'\n{2,}', text)
     data_rows = []
-    
+
     for block in text_blocks:
         lines = block.split('\n')
         header_line = [line.strip() for line in lines if line.isupper()]
         data_lines = [line.strip() for line in lines if not line.isupper()]
-        
+
         if header_line:
             clean_header = header_line[0].lower().replace(' ', '_').split('_')
             clean_data = data_lines
             data_row = dict(zip(clean_header, clean_data))
             data_rows.append(data_row)
-    
+
     df = pd.DataFrame(data_rows)
     return df
 
+def generate_excel(data, file_path):
+    # Generate an Excel file from the DataFrame
+    df = pd.DataFrame(data)
+    df.to_excel(file_path, index=False)
+    return file_path
+
 def save_to_inventory_excel(df, file_name):
+    # Save DataFrame to an Excel file
     output_file = file_name + '.xlsx'
     writer = pd.ExcelWriter(output_file, engine='openpyxl')
-    df.to_excel(writer, index=False, header=False, startcol=0, startrow=0)
-    
+    df.to_excel(writer, index=False, header=True, startcol=0, startrow=0)
+    writer.save()
     print(f"Data successfully saved to {output_file}")
+    return output_file
 
-# Upload file and read content
-file_path = "F:/repogit/XseLLer8/output/extracted.txt"
-with open(file_path, 'r') as file:
-    text = file.read()
+# Main processing
+input_folder = "F:/repogit/XseLLer8/testfiles"
+output_file = "F:/repogit/XseLLer8/output/newextracted.txt"
+inventory_data_path = "F:/repogit/XseLLer8/inventory_data.json"
 
-# Find headers and extract data
+# Step 1: Process input files to extract text
+process_files(input_folder, output_file)
+
+# Step 2: Load the extracted text
+try:
+    with open(output_file, 'r') as file:
+        text = file.read()
+except FileNotFoundError:
+    print(f"Error: {output_file} not found.")
+    text = ""
+
+# Step 3: Extract data from the text using headers
 df = extract_data_with_headers(text)
 
-# Create an Excel file and copy data
-output_file = "F:/repogit/XseLLer8/output/Inventory.xlsx"
-save_to_inventory_excel(df, output_file)
+# Step 4: Save the extracted data to inventory_data.json
+inventory_data = df.to_dict(orient='records')
+save_inventory_data(inventory_data, inventory_data_path)
+
+# Step 5: Create an Excel file and copy data
+excel_output_file = "F:/repogit/XseLLer8/output/Inventory.xlsx"
+save_to_inventory_excel(df, excel_output_file)

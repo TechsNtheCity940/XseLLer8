@@ -1,11 +1,10 @@
-import './App.css';
 import React, { useState, useEffect } from 'react';
-import FileUpload from './components/FileUpload.jsx';
-import CostTracking from './components/CostTracking.jsx';
-import InventoryTable from './components/Inventory.jsx';  // Table view for inventory
+import FileUpload from './components/FileUpload.jsx';  // Import the file upload component
+import Inventory from './components/Inventory.jsx';import CostTracking from './components/CostTracking.jsx';  // Cost tracking component
 import InventoryBarChart from './components/InventoryBarChart.jsx';  // Bar chart for inventory
 import InventoryPriceTrend from './components/InventoryPriceTrend.jsx';  // Price trend chart
-import Forecasting from './components/Forecasting.jsx';
+import Forecasting from './components/Forecasting.jsx';  // Forecasting component
+import Chatbot from './components/Chatbot.jsx';  // Import the new Chatbot component
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -69,14 +68,16 @@ function App() {
       <div className="content-container">
         {activeTab === 'fileUpload' && <FileUpload onFileUpload={handleFileUpload} />}
         {activeTab === 'costTracking' && <CostTracking invoices={invoices} />}
+        {activeTab === 'inventory' && <Inventory />}  {/* Use the Inventory component */}
         {activeTab === 'inventory' && (
           <div>
-            <InventoryTable data={inventoryData} />  {/* Inventory Table */}
+            <Inventory data={inventoryData} />  {/* Inventory Table */}
             <InventoryBarChart data={inventoryData} />  {/* Inventory Bar Chart */}
             <InventoryPriceTrend data={inventoryData} />  {/* Inventory Price Trend */}
           </div>
         )}
         {activeTab === 'forecasting' && <Forecasting sales={sales} />}
+        {activeTab === 'chat' && <Chatbot />}  {/* Add the Chatbot component here */}
       </div>
     );
   };
@@ -101,6 +102,9 @@ function App() {
           <button className={activeTab === 'forecasting' ? 'active' : ''} onClick={() => setActiveTab('forecasting')}>
             Forecasting
           </button>
+          <button className={activeTab === 'chat' ? 'active' : ''} onClick={() => setActiveTab('chat')}>
+            AI Chat
+          </button>  {/* Add a button for the AI Chat */}
         </nav>
       </aside>
       <main className="content-area">

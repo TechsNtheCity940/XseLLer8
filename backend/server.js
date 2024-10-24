@@ -9,7 +9,7 @@ const { spawn } = require('child_process');
 const { parse } = require('json2csv'); // Importing the json2csv library for CSV conversion
 const mime = require('mime-types');
 const winston = require('winston');  // Advanced logging library
-
+const OpenAI = require('openai');
 // Initialize the express app
 const app = express();
 app.use(cors());
@@ -218,7 +218,15 @@ async function saveDataToJSONFile(data, filename) {
 
 // Path to your inventory data file
 const inventoryFile = path.join('F:','repogit', 'XseLLer8', 'inventory_data.json');
-
+app.put('/inventory', (req, res) => {
+    const updatedInventory = req.body;  // Expecting an array of updated inventory data
+  
+    // Save the updated data to your database or in-memory storage here
+   
+    database.saveInventory(updatedInventory);
+  
+    res.json({ success: true, message: 'Inventory updated successfully' });
+  });
 // API route to get inventory data
 app.get('/inventory', (req, res) => {
   // Read the inventory data from the file and send it as a JSON response
@@ -269,6 +277,32 @@ function updateInventory(newData) {
   fs.writeFileSync(inventoryFile, JSON.stringify(inventory, null, 2), 'utf-8');
 }
 
+const openai = new OpenAI({
+  apiKey: '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',  // Ensure you set your API key as an environment variable
+  baseURL: 'https://integrate.api.nvidia.com/v1',
+});
+
+app.use(express.json());
+
+app.post('/chat', async (req, res) => {
+  const { message } = req.body;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'ibm/granite-3.0-8b-instruct',
+      messages: [{ role: 'user', content: message }],
+      temperature: 0.2,
+      top_p: 0.7,
+      max_tokens: 1024,
+    });
+
+    const botResponse = completion.choices[0]?.message?.content;
+    res.json({ content: botResponse });
+  } catch (error) {
+    console.error('Error with AI chat:', error);
+    res.status(500).send('Error communicating with AI');
+  }
+});
 
 // Watch the output folder for new .txt files (optional)
 const watcher = chokidar.watch(OUTPUT_FOLDER, {

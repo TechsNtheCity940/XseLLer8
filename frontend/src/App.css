@@ -137,6 +137,15 @@ body {
   z-index: 2;
 }
 
+.react-data-grid {
+  height: 400px;
+  margin-top: 20px;
+}
+
+.inventory {
+  margin: 20px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .sidebar {
